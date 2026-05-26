@@ -1,0 +1,271 @@
+{
+  "name": "Newsletter summarizer",
+  "nodes": [
+    {
+      "parameters": {
+        "operation": "getAll",
+        "limit": 2,
+        "filters": {
+          "labelIds": [
+            "Label_6245744663598007251"
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        208,
+        0
+      ],
+      "id": "9d6be40c-50f8-4eca-82a2-ac136b8b84ce",
+      "name": "Get many messages",
+      "webhookId": "891fa84f-60bc-4c53-bb14-990b99cbe507",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "WiU7xhbgMCLKH6Mi",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:11434/api/generate",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"qwen2.5:7b\",\n  \"prompt\": {{ JSON.stringify(\n    \"Summarize these emails into a daily digest. If there is a new feature, explain what was missing before and what is new now. Also explain using Feynman's technique. The summary should be interactive making someone want to read.\\n\\n\" +\n    \"CRITICAL: Use proper Markdown spacing. Separate every metadata field with a fresh new line so it doesn't get bunched up.\\n\\n\" +\n    \"Format each email summary EXACTLY like this template:\\n\\n\" +\n    \"### Email #[Number] Summary\\n\" +\n    \"**Sender:** [Sender Name]\\n\" +\n    \"**Subject:** [Subject Text]\\n\" +\n    \"**Link to Email:** [Click Here to View Email]([URL]) -THIS FIELD IS IMPORTANT\\n\\n\" +\n    \"**Summary:**\\n\" +\n    \"[2-3 sentence summary using Feynman's technique here]\\n\\n\" +\n    \"**Key Points:**\\n\" +\n    \"- Point 1\\n\" +\n    \"- Point 2\\n\" +\n    \"--- \\n\\n\" + // Adds a clean horizontal separating line between emails\n    \"Email content:\\n\" + $json.formattedEmailsTranscript + \"\\n\\n\"\n  ) }},\n  \"stream\": false\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1040,
+        0
+      ],
+      "id": "525ea457-7372-4efb-8984-72e67e7eb2c8",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {
+              "fieldToAggregate": "text",
+              "renameField": true,
+              "outputFieldName": "text"
+            },
+            {
+              "fieldToAggregate": "headers.from",
+              "renameField": true,
+              "outputFieldName": "senders"
+            },
+            {
+              "fieldToAggregate": "headers.subject",
+              "renameField": true,
+              "outputFieldName": "subjects"
+            },
+            {
+              "fieldToAggregate": "threadId",
+              "renameField": true,
+              "outputFieldName": "threadIds"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        624,
+        0
+      ],
+      "id": "f4341df8-5fbd-45b7-bf33-3617dbcd315f",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "messageId": "={{ $json.id }}",
+        "simple": false,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        416,
+        0
+      ],
+      "id": "5d57e1a2-bcff-402e-8a9e-760e0caf6d62",
+      "name": "Get a message",
+      "webhookId": "6a7228bf-4e5f-4e5b-9389-7d00b9cd311e",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "WiU7xhbgMCLKH6Mi",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.first().json;\n\nconst texts = items.text || [];\nconst senders = items.senders || [];\nconst subjects = items.subjects || [];\nconst dates = items.dates || [];\nconst threadIds = items.threadIds || []; // Grab the aggregated thread IDs\n\nlet structuredEmailDump = \"\";\n\nfor (let i = 0; i < texts.length; i++) {\n  // Construct the direct Gmail thread link\n  const emailLink = threadIds[i] ? `https://mail.google.com/mail/u/0/#inbox/${threadIds[i]}` : \"Link unavailable\";\n\n  structuredEmailDump += `=== EMAIL #${i + 1} ===\\n`;\n  structuredEmailDump += `FROM: ${senders[i] || 'Unknown Sender'}\\n`;\n  structuredEmailDump += `SUBJECT: ${subjects[i] || 'No Subject'}\\n`;\n  structuredEmailDump += `DATE: ${dates[i] || 'Unknown Date'}\\n`;\n  structuredEmailDump += `LINK TO EMAIL: ${emailLink}\\n`; // Injected here for the LLM\n  \n  let body = texts[i] || \"\";\n  body = body.replace(/View image:.*$/gm, \"\");\n  body = body.replace(/Caption:.*$/gm, \"\");\n  body = body.replace(/https?:\\/\\/\\S+/g, \"\");\n  body = body.replace(/\\n{3,}/g, \"\\n\\n\");\n  \n  structuredEmailDump += `BODY:\\n${body.trim()}\\n`;\n  structuredEmailDump += `====================\\n\\n`;\n}\n\nreturn [\n  {\n    json: {\n      formattedEmailsTranscript: structuredEmailDump\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        832,
+        0
+      ],
+      "id": "03107254-7760-427e-98b6-d7ebe0a470ed",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "sendTo": "kaluvapreethi@gmail.com",
+        "subject": "Today's new Updates of the day",
+        "message": "={{ $json.data }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1456,
+        0
+      ],
+      "id": "500f466f-be2a-4d97-b368-91ae9f0de443",
+      "name": "Send a message",
+      "webhookId": "3f710fe6-42e7-48fb-897a-af746f3eb184",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "WiU7xhbgMCLKH6Mi",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "markdownToHtml",
+        "markdown": "={{ $json.response }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.markdown",
+      "typeVersion": 1,
+      "position": [
+        1248,
+        0
+      ],
+      "id": "51c39c53-b32b-47c7-bb01-af929086f068",
+      "name": "Markdown"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 22
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -48,
+        0
+      ],
+      "id": "63a4c8e6-5488-4da7-b299-ae75933c3857",
+      "name": "Schedule Trigger"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Get many messages": {
+      "main": [
+        [
+          {
+            "node": "Get a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a message": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Markdown",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Markdown": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get many messages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "595fae81-fb58-439b-8601-4b4008e868f7",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "851b81a13991bcba179606660b6e7f18ffd051ac5e98f79cfa711b4845e551b7"
+  },
+  "id": "d0DVsVHiW7bENa5k",
+  "tags": []
+}

@@ -1,0 +1,502 @@
+{
+  "name": "Resume_Workflow_google",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "730e16e4-7695-4cb0-97ea-44a616323de8",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "CREATE TABLE IF NOT EXISTS job_applications (\n    id SERIAL PRIMARY KEY,\n    company_name TEXT,\n    job_description TEXT,\n    match_percentage TEXT,\n    new_match_percentage TEXT,\n    missing_skills TEXT,\n    matching_skills TEXT,\n    generated_resume TEXT,\n    rewrites TEXT, -- This can store your LLM's raw JSON response\n    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP\n);",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1280,
+        336
+      ],
+      "id": "7fa9d766-5680-4b2c-a57b-bc0622662c4c",
+      "name": "Execute a SQL query",
+      "credentials": {
+        "postgres": {
+          "id": "oeVVjDFVHrRlec5j",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentURL": "={{ $json.id }}",
+        "actionsUi": {
+          "actionFields": [
+            {
+              "action": "insert",
+              "text": "={{ $('Parse_LLM_Output').item.json.updated_resume }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.googleDocs",
+      "typeVersion": 2,
+      "position": [
+        2688,
+        0
+      ],
+      "id": "51060443-058a-44e4-86a2-f7f23f60089b",
+      "name": "Update a document",
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "cYcfzlhZy50cFf4r",
+          "name": "Google Docs account"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "folderId": "19GgI6IBNUWFRSZaIPkYAMYiTt9s22sCy",
+        "title": "updated_resume_1"
+      },
+      "type": "n8n-nodes-base.googleDocs",
+      "typeVersion": 2,
+      "position": [
+        2384,
+        0
+      ],
+      "id": "140c60bc-e34a-4c00-ae93-063f1e3c5a53",
+      "name": "Create a document",
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "cYcfzlhZy50cFf4r",
+          "name": "Google Docs account"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "documentURL": "13tLnyZpWXAvc1NG5vqh45yJnbl-f22bdZ3DRplkj9dI"
+      },
+      "type": "n8n-nodes-base.googleDocs",
+      "typeVersion": 2,
+      "position": [
+        240,
+        0
+      ],
+      "id": "eab0049d-b073-484c-92a8-457700c6b79e",
+      "name": "Read_Resume",
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "cYcfzlhZy50cFf4r",
+          "name": "Google Docs account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "fd3165f2-476b-4d54-98d0-264c0a280f0f",
+              "name": "Job Description",
+              "value": "About xAI xAI’s mission is to create AI systems that can accurately understand the universe and aid humanity in its pursuit of knowledge. Our team is small, highly motivated, and focused on engineering excellence. This organization is for individuals who appreciate challenging themselves and thrive on curiosity. We operate with a flat organizational structure. All employees are expected to be hands-on and to contribute directly to the company’s mission. Leadership is given to those who show initiative and consistently deliver excellence. Work ethic and strong prioritization skills are important. All employees are expected to have strong communication skills. They should be able to concisely and accurately share knowledge with their teammates. ABOUT THE ROLE: At xAI, we are building AI systems that push the frontier of human knowledge and scientific discovery. High-quality data is fundamental to every stage of that mission. Our Data team is responsible for ensuring that the models are trained on the right data, in the right form, at the right quality, across every phase of the training lifecycle. This includes partnering closely with acquisition teams to identify where valuable data can be sourced, determining what data is needed to improve model performance, and building the production pipelines and systems that transform raw inputs into high-quality training data at scale. We work at the intersection of data, infrastructure, and machine learning to ensure our models train effectively and reliably. As a Data Engineer / AI Engineer on xAI’s Data team, you will be responsible for developing the systems, processes, and production code that power data acquisition, preparation, quality evaluation, and delivery for model training. You will work closely with acquisition teams, ML engineers, and software engineers to identify data needs, build scalable data pipelines, and continuously improve the quality of the data that shapes model behavior. The ideal candidate combines strong software engineering fundamentals and excellent coding practices with deep intuition for statistics, neural networks, and how data quality influences training outcomes.RESPONSIBILITIES: Analyze the performance and impact of data used throughout the model training lifecycle Investigate anomalous model behavior and rigorously identify the data issues that drive poor downstream performance Design, build, and improve the data cleaning, transformation, and quality-control steps required to produce high-quality training data Research, evaluate, and develop frontier methods for improving data quality and effectiveness in AI model development Apply statistical techniques and empirical analysis to make informed, data-driven decisions about dataset quality and model outcomes Partner across teams to identify where data needs exist and define the highest-impact opportunities for new data acquisition and improvement Build and maintain production-grade data pipelines, tooling, and software systems that ingest, process, validate, and deliver data for training Develop metrics, evaluation frameworks, and monitoring systems to assess how data quality influences model behavior at scale Fuse data from multiple sources into reliable, usable datasets for research and production model training Create shared datasets, tooling, and internal data products that enable other teams to analyze, debug, and improve model performance BASIC QUALIFICATIONS: Bachelor’s degree in computer science, data science, physics, mathematics, or a STEM discipline 1+ years of data/software engineering experience (internship experience is applicable) Experience in implementing or analyzing language models or neural networks  PREFERRED SKILLS AND EXPERIENCE: Professional experience in analytics, data science, machine learning, or data engineering Experience building and operating production data pipelines for neural network or large-scale machine learning workloads Strong experience with Python and the broader ecosystem of libraries and tools used in modern machine learning and data development Experience working with Parquet or similar columnar storage formats in large-scale data systems Familiarity with Kubernetes and distributed production environments Experience developing predictive models and machine learning pipelines, including clustering, forecasting, anomaly detection, or related techniques Experience working with very large-scale datasets, including terabyte- to petabyte-scale data systems Strong statistical intuition and the ability to use quantitative analysis to guide technical and product decision, including familiarity of scaling ladder design studies Ability to operate effectively in a dynamic environment with evolving priorities, changing requirements, and fast-moving technical challenges Demonstrated ability to take ownership of ambiguous problems, drive projects independently, and develop new expertise where needed",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        480,
+        0
+      ],
+      "id": "1e950123-6f50-47fb-a259-7a55d860fb9d",
+      "name": "Job_Description"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:11434/api/generate",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"qwen2.5:7b\",\n  \"format\": \"json\",\n  \"prompt\": {{ JSON.stringify(\n    \"You are an expert resume tailoring assistant.\\n\\n\" +\n    \"Given the resume and job description provided below, perform the following tasks:\\n\" +\n    \"1. Extract the hiring company name from the job description.\\n\" +\n    \"2. Calculate the semantic match percentage between the resume and the JD.\\n\" +\n    \"3. Identify the strongest matching skills.\\n\" +\n    \"4. Identify critical missing skills.\\n\" +\n    \"5. Rewrite ONLY the experience bullet points that should be improved to better align with the JD.\\n\" +\n    \"   CRITICAL: Tailor the rewrites effectively so that the OVERALL MATCH PERCENTAGE becomes AT LEAST 90%.\\n\" +\n    \"6. Strict Constraint: Preserve absolute factual truth. Do not invent skills, metrics, or experiences.\\n\" +\n    \"7. Maintain chronology and professional role accuracy.\\n\\n\" +\n    \"Return ONLY a valid JSON object matching this exact schema:\\n\" +\n    \"{\\n\" +\n    \"  \\\"company_name\\\": \\\"Name of the company hiring\\\",\\n\" +\n    \"  \\\"match_percentage\\\": \\\"Just the number, e.g., 92\\\",\\n\" +\n    \"  \\\"missing_skills\\\": [\\\"Skill A\\\", \\\"Skill B\\\"],\\n\" +\n    \"  \\\"strong_matches\\\": [\\\"Skill C\\\", \\\"Skill D\\\"],\\n\" +\n    \"  \\\"rewritten_bullets\\\": [\\n\" +\n    \"    {\\n\" +\n    \"      \\\"section\\\": \\\"e.g., Work Experience / Projects\\\",\\n\" +\n    \"      \\\"company\\\": \\\"Company where this role occurred\\\",\\n\" +\n    \"      \\\"original\\\": \\\"Original bullet point text\\\",\\n\" +\n    \"      \\\"rewritten\\\": \\\"Tailored bullet point text\\\",\\n\" +\n    \"      \\\"reason\\\": \\\"Brief explanation of why this adjustment helps map to the JD\\\"\\n\" +\n    \"    }\\n\" +\n    \"  ]\\n\" +\n    \"}\\n\\n\" +\n    \"Resume:\\n\" + $('Read_Resume').item.json.content + \"\\n\\n\" +\n    \"JD:\\n\" + $json['Job Description']\n  ) }},\n  \"stream\": false\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        752,
+        0
+      ],
+      "id": "1dbc5f27-038a-4766-9690-12160d2bc474",
+      "name": "LLM_Analysis"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Loop over input items and add a new field called 'myNewField' to the JSON of each one\n// 1. Grab the raw text response from your LLM/Ollama node\n// Note: If your LLM node has a different name, change 'Ollama' to match it exactly.\nconst rawResponseString = $input.first().json.response\n  //$('Ollama').item.json.response;\n\n// 2. Parse the text string containing '\\n' characters into a real JSON object\nconst parsedJson = JSON.parse(rawResponseString);\n\nlet resume = $('Read_Resume').first().json.content\n  //$('Extract from File').first().json.data;\nlet rewrites = parsedJson.rewritten_bullets;\n\nfor (const r of rewrites) {\n  resume = resume.replace(\n    r.original_bullet,\n    r.rewritten_bullet\n  );\n}\n\nconst googleDocRequests = [];\n\nfor (const r of rewrites) {\n  // Check against the exact keys 'original' and 'rewritten'\n  if (r.original && r.original.trim() !== \"\" && r.rewritten) {\n    googleDocRequests.push({\n      replaceAllText: {\n        containsText: {\n          text: r.original.trim(),\n          matchCase: true\n        },\n        replaceText: r.rewritten\n      }\n    });\n  }\n}\n\n// return [{\n//   json: {\n//     updated_resume: resume\n//   }\n// }];\n\n// 3. Return the structured data so downstream nodes (like Neon Postgres) can easily map them\nreturn {\n    // Option A: If your LLM response text already includes a company field:\n  company_name: parsedJson.company_name || \"Unknown Company\", \n  match_percentage: parsedJson.match_percentage,\n  missing_skills: parsedJson.missing_skills,\n  strong_matches: parsedJson.strong_matches,\n  // Keeping the array of rewrites intact\n  rewritten_bullets: parsedJson.rewritten_bullets,\n  updated_resume: resume,\n  google_api_requests: googleDocRequests\n};\n\n\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1008,
+        0
+      ],
+      "id": "fcce2e57-9ad4-4610-8fe6-7c810d260f41",
+      "name": "Parse_LLM_Output"
+    },
+    {
+      "parameters": {
+        "operation": "copy",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $('Read_Resume').item.json.documentId }}",
+          "mode": "id"
+        },
+        "name": "=Preethi_Kaluva_{{ $json.company_name }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        1296,
+        0
+      ],
+      "id": "350ad1e9-c57f-4742-be3a-12ca3e7fe87b",
+      "name": "Replicate_Resume",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "SQcT1dIJxWgBWAa1",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://docs.googleapis.com/v1/documents/{{ $json.id }}:batchUpdate",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleDocsOAuth2Api",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"requests\": {{ JSON.stringify($('Parse_LLM_Output').item.json.google_api_requests) }}\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1536,
+        0
+      ],
+      "id": "492d776e-34d4-47b0-b175-9f6746bc9e6b",
+      "name": "Update_Replicated_Resume",
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "cYcfzlhZy50cFf4r",
+          "name": "Google Docs account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:11434/api/generate",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"qwen2.5:7b\",\n  \"prompt\": {{ JSON.stringify(\n    \"You are a strict evaluation system. Analyze the provided resume against the job description.\\n\\n\" +\n    \"Based on the suggested changes, calculate the final match percentage.\\n\" +\n    \"CRITICAL: Return ONLY a raw integer between 0 and 100 representing the percentage. Do not include a percent sign, do not write a sentence, do not include markdown formatting, and do not provide an explanation. Output exactly 2 or 3 digits total.\\n\\n\" +\n    \"Resume:\\n\" + $('Parse_LLM_Output').item.json.updated_resume + \"\\n\\n\" +\n    \"JD:\\n\" + $json['Job Description']\n  ) }},\n  \"stream\": false\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1744,
+        0
+      ],
+      "id": "2f07e036-94f3-4f88-b967-a418664b1ce1",
+      "name": "New_Match_Percentage"
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "job_applications",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "rewrites": "={{ { \"data\": $json.rewritten_bullets } }}",
+            "job_description": "={{ $('Job_Description').item.json['Job Description'] }}",
+            "company_name": "={{ $('Parse_LLM_Output').item.json.company_name }}",
+            "match_percentage": "={{ $('Parse_LLM_Output').item.json.match_percentage }}",
+            "missing_skills": "={{ $('Parse_LLM_Output').item.json.missing_skills }}",
+            "matching_skills": "={{ $('Parse_LLM_Output').item.json.strong_matches }}",
+            "new_match_percentage": "={{ $json.response }}",
+            "generated_resume": "={{ $('Parse_LLM_Output').item.json.updated_resume }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "company_name",
+              "displayName": "company_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "job_description",
+              "displayName": "job_description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "match_percentage",
+              "displayName": "match_percentage",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "new_match_percentage",
+              "displayName": "new_match_percentage",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "missing_skills",
+              "displayName": "missing_skills",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "matching_skills",
+              "displayName": "matching_skills",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "generated_resume",
+              "displayName": "generated_resume",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "rewrites",
+              "displayName": "rewrites",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        2192,
+        0
+      ],
+      "id": "60e1c740-4e51-441a-9e3c-de07b0f43179",
+      "name": "Insert_Record",
+      "credentials": {
+        "postgres": {
+          "id": "oeVVjDFVHrRlec5j",
+          "name": "Postgres account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Read_Resume",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a document": {
+      "main": [
+        [
+          {
+            "node": "Update a document",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read_Resume": {
+      "main": [
+        [
+          {
+            "node": "Job_Description",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Job_Description": {
+      "main": [
+        [
+          {
+            "node": "LLM_Analysis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LLM_Analysis": {
+      "main": [
+        [
+          {
+            "node": "Parse_LLM_Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse_LLM_Output": {
+      "main": [
+        [
+          {
+            "node": "Replicate_Resume",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Replicate_Resume": {
+      "main": [
+        [
+          {
+            "node": "Update_Replicated_Resume",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update_Replicated_Resume": {
+      "main": [
+        [
+          {
+            "node": "New_Match_Percentage",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "New_Match_Percentage": {
+      "main": [
+        [
+          {
+            "node": "Insert_Record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert_Record": {
+      "main": [
+        [
+          {
+            "node": "Create a document",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "c9c8fcc9-6eb9-400d-a6dc-ad5f28ce74e2",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "851b81a13991bcba179606660b6e7f18ffd051ac5e98f79cfa711b4845e551b7"
+  },
+  "id": "FjrK9UeVuN4DTU7o",
+  "tags": []
+}
